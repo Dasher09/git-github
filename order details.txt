@@ -1,0 +1,29 @@
+import json
+import pymysql
+import os
+# import requests
+
+host = 'shop.cpu8dso01qgw.us-east-1.rds.amazonaws.com'
+user = 'admin'
+password = 'admin123'
+db_name = 'shop'
+def lambda_handler(event, context):
+    conn = pymysql.connect(host=host, user=user, passwd=password, db=db_name, connect_timeout=10)
+    values = (event['id'],)
+    cursor = conn.cursor()
+    cursor.callproc('order_details',values)
+    row_headers = [x[0] for x in cursor.description]
+    conn.commit()
+    result = cursor.fetchall()
+    json_data = []
+    for row in result:
+        json_data.append(dict(zip(row_headers, row)))
+    print(json_data)
+    data = json.dumps(json_data)
+    print(data)
+    conn.close()
+
+
+    return {
+        "oreder_details": json_data
+    }

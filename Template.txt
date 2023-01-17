@@ -1,0 +1,48 @@
+import pymysql
+import os
+# import requests
+
+host = 'hospital.caekjxp7kiic.us-east-1.rds.amazonaws.com'
+user = 'admin'
+password = 'admin123'
+db_name = 'hms'
+def lambda_handler(event, context):
+    conn = pymysql.connect(host=host, user=user, passwd=password, db=db_name, connect_timeout=10)
+
+   
+    cursor = conn.cursor()
+
+    cursor.execute('select doctorName,id from doctors WHERE specilization = %s', event['specilizationid'])
+	
+	
+    result = cursor.fetchall()
+    
+    json_data = []
+for record in result:
+        json_data.append(record)
+    print(json_data)
+    data = json.dumps(json_data)
+    print(data)
+    conn.commit()
+    conn.close()
+     
+    
+    
+    return {
+           "all_doctors": json_data
+
+
+}
+
+--------------------------------------------------------------------------------------------
+get_orders:
+select t.email,t.id from (select usr.email,odrs.id from users as usr join orders as odrs on usr.id=odrs.userId) as t where  t.email=email and (t.id=email)
+
+
+order details:
+select products.productImage1 as pimg1,products.productName as pname,orders.productId as opid,orders.quantity as qty,products.productPrice as pprice,orders.paymentMethod as paym from orders join products on orders.productId=products.id where orders.id=id and orders.paymentMethod is not null
+
+
+
+order history:
+select products.productImage1 as pimg1,products.productName as pname,products.id as proid,orders.productId as opid,orders.quantity as qty,products.productPrice as pprice,products.shippingCharge as shippingcharge,orders.paymentMethod as paym,CAST(orders.orderDate as NChar) as odate,orders.id as orderid from orders join products on orders.productId=products.id where orders.userId=id and orders.paymentMethod is not null
