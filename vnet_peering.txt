@@ -1,0 +1,80 @@
+subscription_id="dc599a31-84ad-4495-80c6-3a36423b683b"
+resource_group_name="random_rg"
+virtual_network_name="Vnet_1"
+virtual_network_ip="23.0.0.0/16"
+subnet_name_1="Subnet_1"
+subnet_ip_1="23.0.0.0/17"
+subnet_name_2="Subnet_2"
+subnet_ip_2="23.0.128.0/17"
+location="eastus"
+
+echo "***********************"
+echo "Creating Resource Group"
+echo "***********************"
+
+az group create --name $resource_group_name \
+                --location $location \
+                --subscription $subscription_id
+
+echo "**************************************"
+echo "Creating Virtual Network and 2 Subnets"
+echo "**************************************"
+
+az network vnet create -n $virtual_network_name \
+                       -g $resource_group_name \
+                       --address-prefix $virtual_network_ip \
+                       --subnet-name $subnet_name_1 \
+                       --subnet-prefix $subnet_ip_1       
+
+az network vnet subnet create -g $resource_group_name \
+                              --vnet-name $virtual_network_name \
+                              -n $subnet_name_2 \
+                              --address-prefixes $subnet_ip_2 
+
+echo "***************************************"
+echo "Creating Virtual Machine with Public IP"
+echo "***************************************"
+
+virtual_machine_size="Standard_D2s_v3"
+os_disk_type="StandardSSD_LRS"
+admin_username="adminuser123"
+admin_password="Password12345!"
+host_name_1="redhat-vm-1"
+host_name_2="redhat-vm-2"
+os_image="RedHat:RHEL:7-RAW:7.4.2018010506"
+public_ip="14.01.432.64"
+
+az vm create \
+    --resource-group $resource_group_name \
+    --name $host_name_1 \
+    --image $os_image \
+    --public-ip-address $public_ip \
+    --size $virtual_machine_size\
+    --storage-sku $os_disk_type  \
+    --location $location \
+    --vnet-name $virtual_network_name \
+    --vnet-address-prefix $virtual_network_ip \
+    --subnet $subnet_name_1 \
+    --subnet-address-prefix $subnet_ip_1 \
+    --admin-username $admin_username \
+    --admin-password $admin_password 
+
+
+echo "****************************************"
+echo "Creating Virtual Machine with Private IP"
+echo "****************************************"
+
+az vm create \
+    --resource-group $resource_group_name \
+    --name $host_name_2 \
+    --image $os_image \
+    --public-ip-address "" \
+    --size $virtual_machine_size\
+    --storage-sku $os_disk_type  \
+    --location $location \
+    --vnet-name $virtual_network_name \
+    --vnet-address-prefix $virtual_network_ip \
+    --subnet $subnet_name_2 \
+    --subnet-address-prefix $subnet_ip_2 \
+    --admin-username $admin_username \
+    --admin-password $admin_password 
